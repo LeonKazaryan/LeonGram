@@ -5,9 +5,14 @@ interface Chat {
   id: number;
   name: string;
   avatar: string;
-  in_messages: string[];
-  out_messages: string[];
+  messages: Message[];
   last_message: Date;
+}
+
+export interface Message {
+  text: string;
+  date: Date;
+  isUser: boolean;
 }
 
 export const chats: Chat[] = [
@@ -15,40 +20,91 @@ export const chats: Chat[] = [
     id: 1,
     name: "GPT Assistant",
     avatar: "🤖",
-    in_messages: ["How can I help you today?"],
-    out_messages: [],
+    messages: [
+      {
+        text: "How can I help you today?",
+        date: new Date("2024-01-10T12:30:00"),
+        isUser: false,
+      },
+    ],
     last_message: new Date("2024-01-10T12:30:00"),
   },
   {
     id: 2,
     name: "Code Helper",
     avatar: "👨‍💻",
-    in_messages: ["Let's solve that bug!"],
-    out_messages: [],
+    messages: [
+      {
+        text: "Let's solve that bug!",
+        date: new Date("2024-01-10T11:45:00"),
+        isUser: false,
+      },
+    ],
     last_message: new Date("2024-01-10T11:45:00"),
   },
   {
     id: 3,
     name: "Creative Writer",
     avatar: "✍️",
-    in_messages: ["Your story outline looks great!"],
-    out_messages: [],
+    messages: [
+      {
+        text: "Your story outline looks great!",
+        date: new Date("2024-01-10T10:15:00"),
+        isUser: false,
+      },
+    ],
     last_message: new Date("2024-01-10T10:15:00"),
   },
   {
     id: 4,
     name: "Math Tutor",
     avatar: "🔢",
-    in_messages: ["The solution to equation is..."],
-    out_messages: [],
+    messages: [
+      {
+        text: "The solution to equation is...",
+        date: new Date("2024-01-09T12:00:00"),
+        isUser: false,
+      },
+    ],
     last_message: new Date("2024-01-09T12:00:00"),
   },
   {
     id: 5,
     name: "Language Buddy",
     avatar: "🌎",
-    in_messages: ["¡Hola! Time for Spanish practice!"],
-    out_messages: [],
+    messages: [
+      {
+        text: "¡Hola! Time for Spanish practice!",
+        date: new Date("2024-01-09T10:00:00"),
+        isUser: false,
+      },
+    ],
+    last_message: new Date("2024-01-09T10:00:00"),
+  },
+  {
+    id: 6,
+    name: "Polish Language Tutor",
+    avatar: "🇵🇱",
+    messages: [
+      {
+        text: "Cześć! Czy chcesz nauczyć się języka polskiego?",
+        date: new Date("2024-01-09T10:00:00"),
+        isUser: false,
+      },
+    ],
+    last_message: new Date("2024-01-09T10:00:00"),
+  },
+  {
+    id: 7,
+    name: "Russian Gopnik",
+    avatar: "🇷🇺",
+    messages: [
+      {
+        text: "Здарова, епта",
+        date: new Date("2024-01-09T10:00:00"),
+        isUser: false,
+      },
+    ],
     last_message: new Date("2024-01-09T10:00:00"),
   },
 ];
@@ -83,7 +139,7 @@ export function ChatList() {
             </div>
             <div className="flex justify-between items-center mt-1">
               <p className="text-gray-400 text-sm truncate pr-4">
-                {chat.in_messages[chat.in_messages.length - 1]}
+                {chat.messages[chat.messages.length - 1].text}
               </p>
             </div>
           </div>

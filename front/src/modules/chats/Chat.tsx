@@ -2,15 +2,14 @@ import { NavChat } from "./NavChat";
 import { useParams } from "react-router-dom";
 import { chats } from "../ChatList";
 import { useState } from "react";
+import type { Message } from "../ChatList";
 
 export function Chat() {
   const { id } = useParams();
-  const chat = chats.find((c) => c.id === Number(id));
+  const chatId = Number(id);
+  const chatIndex = chats.findIndex((c) => c.id === chatId);
+  const chat = chats[chatIndex];
   const [newMessage, setNewMessage] = useState("");
-  const [messages, setMessages] = useState({
-    in_messages: chat?.in_messages || [],
-    out_messages: chat?.out_messages || [],
-  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,14 +22,19 @@ export function Chat() {
     setIsLoading(true);
     setError(null);
 
-    // Add the message to out_messages immediately
-    setMessages((prev) => ({
-      ...prev,
-      out_messages: [...prev.out_messages, newMessage],
-    }));
+    // Add the user's message immediately
+    const userMessage: Message = {
+      text: newMessage,
+      date: new Date(),
+      isUser: true,
+    };
+
+    // Update the chat's messages array directly
+    chats[chatIndex].messages.push(userMessage);
+    chats[chatIndex].last_message = userMessage.date;
 
     try {
-      console.log("Sending message:", { message: newMessage, chatId: id });
+      console.log("Sending message:", { message: newMessage, chatId });
 
       const response = await fetch("http://localhost:5001/send-message", {
         method: "POST",
@@ -39,7 +43,7 @@ export function Chat() {
         },
         body: JSON.stringify({
           message: newMessage,
-          chatId: id,
+          chatId,
         }),
       });
 
@@ -57,11 +61,16 @@ export function Chat() {
         throw new Error("Fuck! No reply received from the server");
       }
 
-      // Add the AI's response to in_messages
-      setMessages((prev) => ({
-        ...prev,
-        in_messages: [...prev.in_messages, data.reply],
-      }));
+      // Add the AI's response
+      const aiMessage: Message = {
+        text: data.reply,
+        date: new Date(),
+        isUser: false,
+      };
+
+      // Update the chat's messages array directly
+      chats[chatIndex].messages.push(aiMessage);
+      chats[chatIndex].last_message = aiMessage.date;
     } catch (error) {
       console.error("Fuck! Error sending message:", error);
       setError(
@@ -77,20 +86,22 @@ export function Chat() {
     <div className="flex flex-col h-screen">
       <NavChat avatar={chat.avatar} name={chat.name} />
       <div className="flex-1 overflow-y-auto p-4 bg-[#2c2c2c]">
-        {/* Incoming Messages */}
-        {messages.in_messages.map((message, index) => (
-          <div key={index} className="flex mb-4">
-            <div className="bg-gray-700 rounded-lg p-3 max-w-[70%]">
-              <p className="text-white">{message}</p>
-            </div>
-          </div>
-        ))}
-
-        {/* Outgoing Messages */}
-        {messages.out_messages.map((message, index) => (
-          <div key={index} className="flex mb-4 justify-end">
-            <div className="bg-blue-600 rounded-lg p-3 max-w-[70%]">
-              <p className="text-white">{message}</p>
+        {chat.messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex mb-4 ${
+              message.isUser ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`rounded-lg p-3 max-w-[70%] ${
+                message.isUser ? "bg-blue-600" : "bg-gray-700"
+              }`}
+            >
+              <p className="text-white">{message.text}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {message.date.toLocaleTimeString()}
+              </p>
             </div>
           </div>
         ))}
