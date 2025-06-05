@@ -15,6 +15,12 @@ export interface Message {
   isUser: boolean;
 }
 
+const truncateText = (text: string, isMobile: boolean) => {
+  const limit = isMobile ? 30 : 50;
+  if (text.length <= limit) return text;
+  return text.slice(0, limit) + "...";
+};
+
 export const chats: Chat[] = [
   {
     id: 1,
@@ -130,16 +136,27 @@ export function ChatList() {
           </div>
 
           {/* Chat Info */}
-          <div className="flex-1 ml-4">
+          <div className="flex-1 ml-4 min-w-0">
             <div className="flex justify-between items-start">
-              <h3 className="text-white font-medium">{chat.name}</h3>
-              <span className="text-gray-400 text-sm">
+              <h3 className="text-white font-medium truncate">{chat.name}</h3>
+              <span className="text-gray-400 text-sm ml-2 shrink-0">
                 {chat.last_message.toLocaleDateString()}
               </span>
             </div>
             <div className="flex justify-between items-center mt-1">
-              <p className="text-gray-400 text-sm truncate pr-4">
-                {chat.messages[chat.messages.length - 1].text}
+              <p className="text-gray-400 text-sm truncate">
+                <span className="md:hidden">
+                  {truncateText(
+                    chat.messages[chat.messages.length - 1].text,
+                    true
+                  )}
+                </span>
+                <span className="hidden md:inline">
+                  {truncateText(
+                    chat.messages[chat.messages.length - 1].text,
+                    false
+                  )}
+                </span>
               </p>
             </div>
           </div>

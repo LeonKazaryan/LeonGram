@@ -8,17 +8,17 @@ import { Chat } from "./modules/chats/Chat";
 
 const App = () => {
   return (
-    <div className="flex">
+    <div className="flex bg-[#2c2c2c] min-h-screen">
       <Navbar />
-      <main className="flex-1 ml-[280px]">
-        {" "}
-        {/* 280px matches navbar width */}
-        <Routes>
-          <Route path="/" element={<Main />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/chats" element={<ChatList />} />
-          <Route path="/chat/:id" element={<Chat />} />
-        </Routes>
+      <main className="flex-1 md:ml-[280px] w-full">
+        <div className="mb-16 md:mb-0">
+          <Routes>
+            <Route path="/" element={<Main />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/chats" element={<ChatList />} />
+            <Route path="/chat/:id" element={<Chat />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );

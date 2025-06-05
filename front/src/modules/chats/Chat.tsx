@@ -84,8 +84,10 @@ export function Chat() {
 
   return (
     <div className="flex flex-col h-screen">
-      <NavChat avatar={chat.avatar} name={chat.name} />
-      <div className="flex-1 overflow-y-auto p-4 bg-[#2c2c2c]">
+      <div className="fixed top-0 left-0 right-0 md:left-[280px] z-40 bg-[#212121]">
+        <NavChat avatar={chat.avatar} name={chat.name} />
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 bg-[#2c2c2c] mt-[64px] mb-[76px] md:mb-[64px]">
         {chat.messages.map((message, index) => (
           <div
             key={index}
@@ -106,6 +108,29 @@ export function Chat() {
           </div>
         ))}
 
+        {/* Loading Animation */}
+        {isLoading && (
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="flex space-x-1">
+              <div
+                className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                style={{ animationDelay: "0s" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                style={{ animationDelay: "0.4s" }}
+              ></div>
+            </div>
+            <span className="text-gray-400 text-sm">
+              {chat.name} is typing...
+            </span>
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div className="flex justify-center mb-4">
@@ -117,7 +142,7 @@ export function Chat() {
       {/* Message Input Form */}
       <form
         onSubmit={handleSubmit}
-        className="p-4 bg-[#212121] border-t border-gray-700"
+        className="fixed bottom-0 left-0 right-0 md:left-[280px] p-4 bg-[#212121] border-t border-gray-700 md:mb-0 mb-16"
       >
         <div className="flex space-x-2">
           <input
