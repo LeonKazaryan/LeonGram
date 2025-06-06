@@ -2,16 +2,16 @@ import { NavChat } from "./NavChat";
 import { useParams } from "react-router-dom";
 import { chats } from "../ChatList";
 import { useState } from "react";
-import type { Message } from "../ChatList";
+import { useChatMessages, useSendMessage } from "../../hooks/useChat";
 
 export function Chat() {
   const { id } = useParams();
   const chatId = Number(id);
-  const chatIndex = chats.findIndex((c) => c.id === chatId);
-  const chat = chats[chatIndex];
+  const chat = chats.find((c) => c.id === chatId);
   const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { data: messages = [] } = useChatMessages(chatId);
+  const { mutate: sendMessage, isPending, error } = useSendMessage(chatId);
 
   if (!chat) return <div>Chat not found</div>;
 
@@ -19,67 +19,11 @@ export function Chat() {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    setIsLoading(true);
-    setError(null);
-
-    // Add the user's message immediately
-    const userMessage: Message = {
-      text: newMessage,
-      date: new Date(),
-      isUser: true,
-    };
-
-    // Update the chat's messages array directly
-    chats[chatIndex].messages.push(userMessage);
-    chats[chatIndex].last_message = userMessage.date;
-
-    try {
-      console.log("Sending message:", { message: newMessage, chatId });
-
-      const response = await fetch("http://localhost:5001/send-message", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: newMessage,
-          chatId,
-        }),
-      });
-
-      console.log("Response status:", response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Shit! Network response was not ok");
-      }
-
-      const data = await response.json();
-      console.log("Received response:", data);
-
-      if (!data.reply) {
-        throw new Error("Fuck! No reply received from the server");
-      }
-
-      // Add the AI's response
-      const aiMessage: Message = {
-        text: data.reply,
-        date: new Date(),
-        isUser: false,
-      };
-
-      // Update the chat's messages array directly
-      chats[chatIndex].messages.push(aiMessage);
-      chats[chatIndex].last_message = aiMessage.date;
-    } catch (error) {
-      console.error("Fuck! Error sending message:", error);
-      setError(
-        error instanceof Error ? error.message : "Unknown error occurred"
-      );
-    } finally {
-      setIsLoading(false);
-      setNewMessage(""); // Clear the input
-    }
+    sendMessage(newMessage, {
+      onSuccess: () => {
+        setNewMessage(""); // Clear the input
+      },
+    });
   };
 
   return (
@@ -88,7 +32,7 @@ export function Chat() {
         <NavChat avatar={chat.avatar} name={chat.name} />
       </div>
       <div className="flex-1 overflow-y-auto p-4 bg-[#2c2c2c] mt-[64px] mb-[76px] md:mb-[64px]">
-        {chat.messages.map((message, index) => (
+        {messages.map((message, index) => (
           <div
             key={index}
             className={`flex mb-4 ${
@@ -109,7 +53,7 @@ export function Chat() {
         ))}
 
         {/* Loading Animation */}
-        {isLoading && (
+        {isPending && (
           <div className="flex items-center space-x-2 mb-4">
             <div className="flex space-x-1">
               <div
@@ -134,7 +78,9 @@ export function Chat() {
         {/* Error Message */}
         {error && (
           <div className="flex justify-center mb-4">
-            <div className="bg-red-500 text-white p-3 rounded-lg">{error}</div>
+            <div className="bg-red-500 text-white p-3 rounded-lg">
+              {error instanceof Error ? error.message : "An error occurred"}
+            </div>
           </div>
         )}
       </div>
@@ -151,16 +97,16 @@ export function Chat() {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
             className="flex-1 bg-[#2c2c2c] text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isLoading}
+            disabled={isPending}
           />
           <button
             type="submit"
             className={`bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors ${
-              isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
+              isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
             }`}
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? "Sending..." : "Send"}
+            {isPending ? "Sending..." : "Send"}
           </button>
         </div>
       </form>
